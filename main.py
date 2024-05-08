@@ -1,5 +1,6 @@
 from oracle_DML import Scraping, OracleProcess
 from selenium_p import Selenium_Process
+from connect import ConnectDatabase
 from datetime import datetime
 
 headers = {
@@ -11,6 +12,7 @@ print(time_detail)
 
 url_list=Selenium_Process("https://kontakt.az/notbuk-ve-kompyuterler/komputerler/notbuklar").get_href_list()
 
+connect_oracle = ConnectDatabase()
 for url in url_list:
     soup = Scraping(url, headers)
     data = soup.get_tag_value({
@@ -18,12 +20,13 @@ for url in url_list:
         "h1": {"class": "page-title"},
         "div": {"class": "prodCart__prices product-desktop-block"}
     })
-
-    insert = OracleProcess().insert_product(url=data["url"], title=data["title"], price=data["price"])
+    insert = OracleProcess().insert_product(url=data["url"], title=data["title"], price=data["price"], con_oracle=connect_oracle)
     print(insert)
     del soup.url
     del soup
     #del OracleProcess
+connect_oracle.connection.commit()
+connect_oracle.connection.close()
 
 time_detail=datetime.strftime(datetime.now(),'%X')
 print(time_detail)
